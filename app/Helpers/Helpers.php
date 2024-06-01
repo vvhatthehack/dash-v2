@@ -431,3 +431,42 @@ if (!function_exists('getIcon')) {
         return theme()->getIcon($name, $class, $type, $tag);
     }
 }
+
+if (!function_exists('getDeviceType')) {
+    function getDeviceType($userAgent)
+    {
+        $browser = 'Unknown Browser';
+        $platform = 'Unknown Platform';
+
+        // Identify the browser
+        if (preg_match('/MSIE/i', $userAgent) && !preg_match('/Opera/i', $userAgent)) {
+            $browser = 'Internet Explorer';
+        } elseif (preg_match('/Firefox/i', $userAgent)) {
+            $browser = 'Firefox';
+        } elseif (preg_match('/Chrome/i', $userAgent)) {
+            $browser = 'Chrome';
+        } elseif (preg_match('/Safari/i', $userAgent)) {
+            $browser = 'Safari';
+        } elseif (preg_match('/Opera/i', $userAgent)) {
+            $browser = 'Opera';
+        } elseif (preg_match('/Netscape/i', $userAgent)) {
+            $browser = 'Netscape';
+        }
+
+        // Identify the platform
+        if (preg_match('/linux/i', $userAgent)) {
+            $platform = 'Linux';
+        } elseif (preg_match('/macintosh|mac os x/i', $userAgent)) {
+            $platform = 'macOS';
+        } elseif (preg_match('/windows|win32/i', $userAgent)) {
+            $platform = 'Windows';
+        } elseif (preg_match('/iphone|ipad/i', $userAgent)) {
+            $platform = 'iOS';
+        } elseif (preg_match('/android/i', $userAgent)) {
+            $platform = 'Android';
+        }
+
+        return "$browser - $platform";
+    }
+}
+

@@ -8,6 +8,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -22,6 +24,9 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $fillable = [
         'name',
         'email',
+        'whatsapp',
+        'whatsapp_verified_at',
+        'whatsapp_verification_code',
         'password',
         'last_login_at',
         'last_login_ip',
@@ -46,6 +51,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $casts = [
         'email_verified_at' => 'datetime',
         'last_login_at' => 'datetime',
+        'whatsapp_verified_at' => 'datetime',
     ];
 
     public function getProfilePhotoUrlAttribute()
@@ -65,5 +71,9 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getDefaultAddressAttribute()
     {
         return $this->addresses?->first();
+    }
+    public function hasVerifiedWhatsapp()
+    {
+        return !is_null($this->whatsapp_verified_at);
     }
 }

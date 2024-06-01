@@ -1,0 +1,12 @@
+cd starterkit
+composer install
+cp .env.example .env
+php artisan migrate:fresh --seed
+php artisan key:generate
+npm install
+npm run dev
+
+#additional cari sendiri
+composer install spatie
+composer require inertiajs/inertia-laravel
+php artisan inertia:middleware

@@ -51,3 +51,8 @@ Breadcrumbs::for('user-management.permissions.index', function (BreadcrumbTrail 
     $trail->parent('user-management.index');
     $trail->push('Permissions', route('user-management.permissions.index'));
 });
+
+// Home > My Profile
+Breadcrumbs::for('my-profile', function (BreadcrumbTrail $trail) {
+    $trail->push('My Profile', route('profile'));
+});
