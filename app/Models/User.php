@@ -72,6 +72,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->addresses?->first();
     }
+
     public function hasVerifiedWhatsapp()
     {
         return !is_null($this->whatsapp_verified_at);

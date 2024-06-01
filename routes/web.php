@@ -33,12 +33,13 @@ Route::middleware(['auth', 'verified', 'verified.whatsapp'])->group(function () 
         Route::resource('/user-management/roles', RoleManagementController::class);
         Route::resource('/user-management/permissions', PermissionManagementController::class);
     });
-
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/update-email', [ProfileController::class, 'updateEmail'])->name('profile.update.email');
     Route::post('/profile/update-phone', [ProfileController::class, 'updatePhone'])->name('profile.update.phone');
     Route::post('/profile/update-phone', [ProfileController::class, 'updatePhone'])->name('profile.update.phone');
     Route::post('/profile/update-password', [ProfileController::class, 'updatePassword'])->name('profile.change.password');
+    Route::post('/profile/update-photo', [ProfileController::class, 'updatePhoto'])->name('profile.update.photo');
 
     Route::get('/sessions', [SessionController::class, 'index'])->name('sessions.index');
     Route::post('/sessions/{id}/destroy', [SessionController::class, 'destroy'])->name('sessions.destroy');

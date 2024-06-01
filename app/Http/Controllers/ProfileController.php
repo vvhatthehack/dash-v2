@@ -10,7 +10,7 @@ use App\Http\Controllers\Auth\WhatsappVerificationController;
 use Illuminate\Support\Facades\Hash;
 use App\Models\SessionHistory;
 use App\Http\Controllers\SessionController;
-use GeoIP;
+use Stevebauman\Location\Facades\Location;
 
 class ProfileController extends Controller
 {
@@ -41,29 +41,81 @@ class ProfileController extends Controller
 
         // Fetch the user's session
         $sessionController = new SessionController();
-        $sessions = $sessionController->index();
+        $sessions = $sessionController->index()->map(function ($session) {
+            $session->country = $this->isLocalIP($session->ip_address) ? 'Local IP' : $session->country;
+            return $session;
+        });
 
-        // Get GeoIP information
-        //$geoip = geoip()->getLocation($request->ip());
-        //$country = $geoip->country;
+        // Get GeoIP information using Cloudflare driver
+        $ip = $request->ip();
+        if ($this->isLocalIP($ip)) {
+            $country = 'Local IP';
+            $city = 'Local IP';
+        } else {
+            $geoip = Location::get($ip);
 
-        return view('pages.profile.index', compact('user', 'last_login', 'address', 'created_at', 'sessions'));
+            if ($geoip) {
+                $country = $geoip->countryName ?? 'Unknown';
+                $city = $geoip->cityName ?? 'Unknown';
+            } else {
+                $country = 'Unknown';
+                $city = 'Unknown';
+            }
+
+            // Debugging: Log the geoip information
+            \Log::info('GeoIP Information:', ['geoip' => $geoip]);
+        }
+
+        return view('pages.profile.index', compact('user', 'last_login', 'address', 'created_at', 'sessions', 'country', 'city'));
     }
+
     public function update(Request $request)
     {
         $user = Auth::user();
-        $user->name = $request->input('name');
-        $user->save();
 
-        // Update address details if necessary
-        $address = $user->default_address;
-        $address->address_line_1 = $request->input('address1');
-        $address->address_line_2 = $request->input('address2');
-        $address->city = $request->input('city');
-        $address->state = $request->input('state');
-        $address->postal_code = $request->input('postcode');
-        $address->country = $request->input('country');
-        $address->save();
+        // Validate the request
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+         // Update address details if necessary
+         $address = $user->default_address;
+         $address->address_line_1 = $request->input('address1');
+         $address->address_line_2 = $request->input('address2');
+         $address->city = $request->input('city');
+         $address->state = $request->input('state');
+         $address->postal_code = $request->input('postcode');
+         $address->country = $request->input('country');
+         $address->save();
+
+        // Handle avatar removal
+        if ($request->has('avatar_remove') && $request->avatar_remove == 1) {
+            if ($user->profile_photo_path && file_exists(public_path($user->profile_photo_path))) {
+                unlink(public_path($user->profile_photo_path));
+            }
+            $user->profile_photo_path = null;
+        }
+
+        // Handle new avatar upload
+        if ($request->hasFile('avatar')) {
+            // Delete old avatar if exists
+            if ($user->profile_photo_path && file_exists(public_path($user->profile_photo_path))) {
+                unlink(public_path($user->profile_photo_path));
+            }
+
+            $avatarName = time() . '.' . $request->avatar->extension();
+            $request->avatar->move(public_path('avatars'), $avatarName);
+            $user->profile_photo_path = 'avatars/' . $avatarName;
+        }
+
+        // Update other fields
+        $user->name = $request->name;
+        $user->save();
 
         return redirect()->back()->with('status', 'Profile updated successfully!');
     }
@@ -77,7 +129,7 @@ class ProfileController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'profile_email' => 'required|email|unique:users,email,' . Auth::id(),
+            'profile_email' => 'required|email|unique:users,email,' . $user->id,
         ]);
 
         if ($validator->fails()) {
@@ -92,7 +144,6 @@ class ProfileController extends Controller
 
         return response()->json(['status' => 'Email updated successfully!']);
     }
-
 
     public function updatePhone(Request $request)
     {
@@ -117,9 +168,9 @@ class ProfileController extends Controller
         // Call the resendCode method in the WhatsappVerificationController
         app(WhatsappVerificationController::class)->resend_code_change_number($user);
 
-        //return redirect()->back()->with('status', 'Phone number updated and verification code sent.');
         return response()->json(['status' => 'Phone updated successfully!']);
     }
+
     public function updatePassword(Request $request)
     {
         $request->validate([
@@ -138,5 +189,10 @@ class ProfileController extends Controller
         $user->save();
 
         return response()->json(['status' => 'Password updated successfully!']);
+    }
+
+    private function isLocalIP($ip)
+    {
+        return in_array($ip, ['127.0.0.1', '::1']) || substr($ip, 0, 8) === '192.168.' || substr($ip, 0, 7) === '10.0.0';
     }
 }
