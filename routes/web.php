@@ -30,6 +30,7 @@ Route::middleware(['auth', 'verified', 'verified.whatsapp'])->group(function () 
 
     Route::name('user-management.')->middleware(['role:administrator'])->group(function () {
         Route::resource('/user-management/users', UserManagementController::class);
+        Route::get('/user-management/users/create', [UserManagementController::class, 'create'])->name('user-management.users.create');
         Route::resource('/user-management/roles', RoleManagementController::class);
         Route::resource('/user-management/permissions', PermissionManagementController::class);
     });

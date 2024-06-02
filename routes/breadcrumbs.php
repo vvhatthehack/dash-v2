@@ -18,7 +18,6 @@ Breadcrumbs::for('dashboard', function (BreadcrumbTrail $trail) {
 
 // Home > Dashboard > User Management
 Breadcrumbs::for('user-management.index', function (BreadcrumbTrail $trail) {
-    $trail->parent('dashboard');
     $trail->push('User Management', route('user-management.users.index'));
 });
 

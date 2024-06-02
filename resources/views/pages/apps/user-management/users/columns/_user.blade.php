@@ -2,8 +2,8 @@
 <div class="symbol symbol-circle symbol-50px overflow-hidden me-3">
     <a href="{{ route('user-management.users.show', $user) }}">
         @if($user->profile_photo_path)
-            <div class="symbol-label">
-                <img src="{{ $user->profile_photo_path }}" class="w-100"/>
+            <div class="symbol symbol-label">
+                <img alt="Logo" src="{{ asset('/' . Auth::user()->profile_photo_path) }}" />
             </div>
         @else
             <div class="symbol-label fs-3 {{ app(\App\Actions\GetThemeType::class)->handle('bg-light-? text-?', $user->name) }}">

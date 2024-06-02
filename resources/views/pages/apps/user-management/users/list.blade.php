@@ -20,7 +20,7 @@
                 </div>
                 <!--end::Search-->
             </div>
-            <!--begin::Card title-->
+            <!--end::Card title-->
 
             <!--begin::Card toolbar-->
             <div class="card-toolbar">
@@ -37,6 +37,7 @@
 
                 <!--begin::Modal-->
                 <livewire:user.add-user-modal></livewire:user.add-user-modal>
+                <livewire:user.edit-user-modal></livewire:user.edit-user-modal>
                 <!--end::Modal-->
             </div>
             <!--end::Card toolbar-->
@@ -63,12 +64,17 @@
             document.addEventListener('livewire:init', function () {
                 Livewire.on('success', function () {
                     $('#kt_modal_add_user').modal('hide');
+                    $('#kt_modal_edit_user').modal('hide');
                     window.LaravelDataTables['users-table'].ajax.reload();
                 });
             });
             $('#kt_modal_add_user').on('hidden.bs.modal', function () {
                 Livewire.dispatch('new_user');
             });
+            window.editUser = function (userId) {
+                Livewire.emit('editUser', userId);
+                $('#kt_modal_edit_user').modal('show');
+            }
         </script>
     @endpush
 
